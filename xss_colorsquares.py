@@ -7,7 +7,7 @@ import time
 import os
 
 
-CELL_SIZE = 10   #in pixels
+CELL_SIZE = 70   #in pixels
 
 
 class ScreenSaver(object):
@@ -34,36 +34,32 @@ class ScreenSaver(object):
     # initialize grid-to-pizel map
     self.xmax = self.rootscreen.width_in_pixels / CELL_SIZE
     self.ymax = self.rootscreen.height_in_pixels / CELL_SIZE
-    self.store = set()
+    self.store = []
 
     self.main()
 
   def render(self, x, y):
-    self.store.remove((x,y))
+    # random color
+    new_pixel = random.randint(0, 2**24)
+    self.gc.change(foreground=new_pixel)
+
     self.window.fill_arc(self.gc,
-        x*CELL_SIZE, y*CELL_SIZE),  #x, y
+        x*CELL_SIZE, y*CELL_SIZE,   #x, y
         CELL_SIZE, CELL_SIZE,       #width, height
         0, 360*64)                  #rotation, 1/64ths of degrees to draw
-    self.display.flush()
 
   def main(self):
     while True:
-      # random color
-      new_pixel = random.randint(0, 2**24)
-      self.gc.change(foreground=new_pixel)
-      self.window.fill_arc(self.gc,
-               random.randint(0, self.rootscreen.width_in_pixels), # x
-               random.randint(0, self.rootscreen.height_in_pixels), # y
-               100, # width
-               100, # height,
-               0, 360*64
-               )
-      
-      if random.randint(0, 500) < 1:
+      if self.store:
+        self.render(*self.store.pop())
+      else:
         self.window.clear_area(0, 0, 0, 0) # clear_window
+        self.store = [(x,y) for x in range(0, self.xmax) for y in range(0, self.ymax)]
+        random.shuffle(self.store)
+
   #    5. Flush the output (make drawing visible).
       self.display.flush()
-      time.sleep(0.1) # not 10us...
+      time.sleep(0.05)
 
 
 if __name__ == "__main__":
